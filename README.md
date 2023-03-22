@@ -15,6 +15,6 @@
 ## How to use:
 
 * Download the code as zip and extract it somewhere.
-* If you have a mod list, mod barcodes (Author.ModName) to the `modlist.txt` file. (one per line)
+* If you have a mod list, add mod barcodes (Author.ModName) to the `modlist.txt` file. (one per line)
 * run `py download.py` (or one of the provided .bat files) in the folder where you extracted the code.
 * Choose a mode number from the list.
