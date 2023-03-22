@@ -1,6 +1,6 @@
 # BoneLab Mod.IO Downloader
 # By Yernemm
-# Version 1.3
+# Version 1.4
 
 import json
 import os
@@ -19,7 +19,7 @@ modInfoPath = os.getenv('APPDATA') + "\\..\\LocalLow\\Stress Level Zero\\Bonelab
 if not os.path.exists(modInfoPath):
     print("Creating mod info file...")
     with open(modInfoPath, 'w') as file:
-        file.write('{"version": "1.3", "installed": []}')
+        file.write('{"version": "1.4", "installed": []}')
         file.close()
 
 modInfo = json.load(open(modInfoPath))
@@ -222,7 +222,8 @@ def downloadOneMod(modTitle, modUrl, modBarcode):
     print(modUrl)
     zipFile = ".\\tmp\\" + modBarcode + ".zip"
     try:
-        urllib.request.urlretrieve(modUrl, zipFile)
+        urllib.request.urlretrieve(modUrl, zipFile, printDownloadProgress)
+        print("")
         addInstalledMods(modBarcode, modUrl)
     except:
         print("Error downloading " + modTitle + ".")
@@ -319,5 +320,10 @@ def generateModList(path):
         file.close()
     print("--------------------")
     print("Saved to generated-modlist.txt")
+
+def printDownloadProgress(count, blockSize, totalSize):
+    percent = int(count*blockSize*100/totalSize)
+    print("\r" + str(percent) + "% (" + str(int(count*blockSize/ (1048576))) + "/" + str(int(totalSize/1048576)) + " MB)" , end="")
+
 
 main()
