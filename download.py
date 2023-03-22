@@ -1,6 +1,6 @@
 # BoneLab Mod.IO Downloader
 # By Yernemm
-# Version 1.1
+# Version 1.2
 
 import json
 import os
@@ -19,7 +19,7 @@ modInfoPath = os.getenv('APPDATA') + "\\..\\LocalLow\\Stress Level Zero\\Bonelab
 if not os.path.exists(modInfoPath):
     print("Creating mod info file...")
     with open(modInfoPath, 'w') as file:
-        file.write('{"version": "1.1", "installed": []}')
+        file.write('{"version": "1.2", "installed": []}')
         file.close()
 
 modInfo = json.load(open(modInfoPath))
@@ -91,7 +91,7 @@ def mode2():
 
 def mode3():
     print("Generate mod list from installed mods")
-    print("NOT IMPLEMENTED YET")
+    generateModList(modFolder)
 
 
 def getRepoMods():
@@ -230,5 +230,34 @@ def checkIfUpdated(barcode, url):
             else:
                 return False
     return False
+
+def generateModList(path):
+    #loop through all folders in path
+    #if folder contains a pallet.json, open it
+    #get the barcode and add it to the list
+
+    newList = ""
+
+    #get all folders in path
+    folders = os.listdir(path)
+    for folder in folders:
+        #check if folder contains a pallet.json
+        if os.path.exists(path + "\\" + folder + "\\pallet.json"):
+            #open pallet.json
+            with open(path + "\\" + folder + "\\pallet.json") as file:
+                pallet = json.load(file)
+                file.close()
+            #get barcode
+            barcode = pallet["objects"]["o:1"]["barcode"]
+            #add barcode to list
+            newList += barcode + "\n"
+            print(barcode)
+    
+    #save list to file
+    with open("generated-modlist.txt", "w") as file:
+        file.write(newList)
+        file.close()
+    print("--------------------")
+    print("Saved to generated-modlist.txt")
 
 main()
