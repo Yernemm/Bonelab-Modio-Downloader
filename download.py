@@ -1,6 +1,6 @@
 # BoneLab Mod.IO Downloader
 # By Yernemm
-# Version 1.2
+# Version 1.3
 
 import json
 import os
@@ -19,7 +19,7 @@ modInfoPath = os.getenv('APPDATA') + "\\..\\LocalLow\\Stress Level Zero\\Bonelab
 if not os.path.exists(modInfoPath):
     print("Creating mod info file...")
     with open(modInfoPath, 'w') as file:
-        file.write('{"version": "1.2", "installed": []}')
+        file.write('{"version": "1.3", "installed": []}')
         file.close()
 
 modInfo = json.load(open(modInfoPath))
@@ -36,6 +36,7 @@ with open('modlist.txt') as file:
         modlist.append(line.strip())
 
 notFoundList = []
+errorList = []
 
 print("Mods in list: " + str(len(modlist)))
 #remove duplicates
@@ -72,21 +73,32 @@ def main():
 
 
 def mode1():
-    print("Update existing list mods and install new ones")
+    print("Install all mods from list")
     allMods = getRepoMods()
     purgeUpdatedMods(allMods)
-    zipFiles = downloadMods(allMods)
-    installMods(zipFiles)
-    saveInfo()
-    cleanUp(zipFiles)
+    urls, barcodes, titles = getModUrls(allMods)
+
+    for i, url in enumerate(urls):
+        zipFile = downloadOneMod(titles[i], url, barcodes[i])
+        installOneMod(zipFile)
+        cleanUp([zipFile])
+        print(str(i + 1) + "/" + str(len(urls)) + " installed.")
+        
+  
     checkNotFound()
 
 def mode2():
     print("Install all mods from list")
     allMods = getRepoMods()
-    zipFiles = downloadMods(allMods)
-    installMods(zipFiles)
-    cleanUp(zipFiles)
+    urls, barcodes, titles = getModUrls(allMods)
+
+    for i, url in enumerate(urls):
+        zipFile = downloadOneMod(titles[i], url, barcodes[i])
+        installOneMod(zipFile)
+        cleanUp([zipFile])
+        print(str(i + 1) + "/" + str(len(urls)) + " installed.")
+        
+  
     checkNotFound()
 
 def mode3():
@@ -186,6 +198,47 @@ def downloadMods(allMods):
     modlist = []
     return zipFiles
 
+def getModUrls(allMods):
+    global modlist
+    global notFoundList
+
+    barcodes = []
+    urls = []
+    titles = []
+    for i, mod in enumerate(allMods):
+        if mod["mod"]["barcode"] in modlist:
+            urls.append(mod["dl"]["url"])
+            barcodes.append(mod["mod"]["barcode"])
+            titles.append(mod["mod"]["title"])
+            modlist.remove(mod["mod"]["barcode"])
+    
+    notFoundList = modlist
+    modlist = []
+    return urls, barcodes, titles
+
+def downloadOneMod(modTitle, modUrl, modBarcode):
+    global errorList
+    print("Downloading " + modTitle + "...")
+    print(modUrl)
+    zipFile = ".\\tmp\\" + modBarcode + ".zip"
+    try:
+        urllib.request.urlretrieve(modUrl, zipFile)
+        addInstalledMods(modBarcode, modUrl)
+    except:
+        print("Error downloading " + modTitle + ".")
+        errorList.append(modBarcode)
+    return zipFile
+
+def installOneMod(zipFile):
+    print("Installing " + zipFile + "...")
+    try:
+        with zipfile.ZipFile(zipFile, 'r') as zip_ref:
+            zip_ref.extractall(modFolder)
+    except:
+        print("Error installing " + zipFile + ".")
+    saveInfo()
+    
+
 def installMods(zipFiles):
     print("Installing mods...")
     for i, zipFile in enumerate(zipFiles):
@@ -198,14 +251,21 @@ def installMods(zipFiles):
 
 def cleanUp(zipFiles):
     print("Cleaning up...")
-    for zipFile in zipFiles:
-        os.remove(zipFile)
+    try:
+        for zipFile in zipFiles:
+            os.remove(zipFile)
+    except:
+        print("Error cleaning up.")
 
 
 def checkNotFound():
     if(len(notFoundList) > 0):
         print("The following mods were not found:")
         for mod in notFoundList:
+            print("   " + mod)
+    if(len(errorList) > 0):
+        print("The following mods failed to download:")
+        for mod in errorList:
             print("   " + mod)
  
 def saveInfo():
@@ -219,7 +279,7 @@ def saveInfo():
 def addInstalledMods(barcode, url):
     global modInfo
     modInfo["installed"].append({"barcode": barcode, "url": url})
-    saveInfo()
+    
 
 def checkIfUpdated(barcode, url):
     global modInfo
