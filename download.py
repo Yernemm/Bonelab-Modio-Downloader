@@ -1,6 +1,6 @@
 # BoneLab Mod.IO Downloader
 # By Yernemm
-# Version 1.4
+# Version 1.3
 
 import json
 import os
@@ -19,7 +19,7 @@ modInfoPath = os.getenv('APPDATA') + "\\..\\LocalLow\\Stress Level Zero\\Bonelab
 if not os.path.exists(modInfoPath):
     print("Creating mod info file...")
     with open(modInfoPath, 'w') as file:
-        file.write('{"version": "1.4", "installed": []}')
+        file.write('{"version": "1.3", "installed": []}')
         file.close()
 
 modInfo = json.load(open(modInfoPath))
@@ -42,6 +42,10 @@ print("Mods in list: " + str(len(modlist)))
 #remove duplicates
 modlist = list(dict.fromkeys(modlist))
 print("Mods in list (no duplicates): " + str(len(modlist)))
+
+#make tmp folder if it doesn't exist
+if not os.path.exists(".\\tmp"):
+    os.mkdir(".\\tmp")
 
 def main():
     print("===========================")
@@ -163,9 +167,7 @@ def purgeUpdatedMods(allMods):
 def downloadMods(allMods):
     global modlist
     global notFoundList
-    #make tmp folder if it doesn't exist
-    if not os.path.exists(".\\tmp"):
-        os.mkdir(".\\tmp")
+
 
     zipFiles = []
 
